@@ -1,0 +1,27 @@
+@EnterpriseERP.API_HostAddress = http://localhost:5213
+
+GET {{EnterpriseERP.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+GET http://localhost:5213/api/customers
+Accept: application/json
+
+### إضافة عميل جديد
+POST http://localhost:5213/api/customers
+Content-Type: application/json
+
+{
+  "customerName": "شركة الأمل للتجارة",
+  "taxNumber": "123456789",
+  "phone": "01012345678",
+  "email": "info@alamal.com",
+  "creditLimit": 50000
+}
+
+
+
+
+
+
+
+###
