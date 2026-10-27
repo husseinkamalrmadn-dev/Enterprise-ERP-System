@@ -1475,11 +1475,59 @@
     <!-- JAVASCRIPT LOGIC ENGINE -->
     <!-- ========================================== -->
     <script>
-        const API_URL = (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1'))
-            ? `${window.location.origin}/api`
-            : "http://localhost:5213/api";
+        // Dynamic Enterprise API Endpoint Resolver
+        function resolveApiBaseUrl() {
+            // 1. URL Query parameter override (?api=https://...)
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryApi = urlParams.get('api');
+            if (queryApi) {
+                const cleaned = queryApi.replace(/\/+$/, '');
+                localStorage.setItem('ENTERPRISE_API_URL', cleaned);
+                return cleaned.endsWith('/api') ? cleaned : `${cleaned}/api`;
+            }
 
-        document.getElementById('apiEndpointLabel').innerText = API_URL.replace('/api', '');
+            // 2. LocalStorage override
+            const storedApi = localStorage.getItem('ENTERPRISE_API_URL');
+            if (storedApi) {
+                return storedApi.endsWith('/api') ? storedApi : `${storedApi}/api`;
+            }
+
+            // 3. Runtime window injection (Vercel / Docker environment)
+            if (window.API_BASE_URL || window.__API_BASE_URL__) {
+                const envApi = (window.API_BASE_URL || window.__API_BASE_URL__).replace(/\/+$/, '');
+                return envApi.endsWith('/api') ? envApi : `${envApi}/api`;
+            }
+
+            // 4. Local development detection
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            if (isLocal) {
+                // If served by the ASP.NET Core API itself
+                if (window.location.port === '5213') {
+                    return `${window.location.origin}/api`;
+                }
+                return 'http://localhost:5213/api';
+            }
+
+            // 5. Production Cloudflare Tunnel Live Endpoint
+            const LIVE_PRODUCTION_API = "https://shortly-indicated-worked-input.trycloudflare.com/api";
+            return LIVE_PRODUCTION_API;
+        }
+
+        const API_URL = resolveApiBaseUrl();
+
+        const endpointLabelEl = document.getElementById('apiEndpointLabel');
+        if (endpointLabelEl) {
+            endpointLabelEl.innerText = API_URL.replace(/\/api$/, '').replace(/^https?:\/\//, '');
+            endpointLabelEl.title = `Active API: ${API_URL} (Click to change)`;
+            endpointLabelEl.style.cursor = 'pointer';
+            endpointLabelEl.onclick = () => {
+                const newUrl = prompt('Enter Backend API URL (e.g., https://your-cloud-api.onrender.com or /api):', API_URL);
+                if (newUrl) {
+                    localStorage.setItem('ENTERPRISE_API_URL', newUrl.trim());
+                    window.location.reload();
+                }
+            };
+        }
 
         // Global Stores
         let globalProducts = [];

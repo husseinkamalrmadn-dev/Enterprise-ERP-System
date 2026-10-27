@@ -1,0 +1,19 @@
+# ==============================================================================
+# Render Infrastructure as Code (Blueprint)
+# EnterpriseERP.API - Zero-Billing Cloud Deployment
+# ==============================================================================
+services:
+  - type: web
+    name: enterprise-erp-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: frankfurt
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:8080
+      - key: ConnectionStrings__DefaultConnection
+        sync: false # Set in Render Dashboard or attach cloud SQL database

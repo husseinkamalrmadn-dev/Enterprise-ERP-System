@@ -1,0 +1,7 @@
+## .NET Build Artifacts
+bin/
+obj/
+*.user
+*.suo
+publish/
+*.log
