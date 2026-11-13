@@ -1,8 +1,8 @@
 $Origin = "https://enterprise-erp-system-wwwroot.vercel.app"
-$Tunnel = "https://shortly-indicated-worked-input.trycloudflare.com"
+$Tunnel = "https://enterprise-erp-api.runasp.net"
 
 Write-Host "=====================================================================" -ForegroundColor Cyan
-Write-Host ">>> END-TO-END VERIFICATION: VERCEL FRONTEND <-> CLOUDFLARE BACKEND" -ForegroundColor Cyan
+Write-Host ">>> END-TO-END VERIFICATION: VERCEL FRONTEND <-> MONSTERASP.NET CLOUD API" -ForegroundColor Cyan
 Write-Host "Frontend Domain : $Origin" -ForegroundColor Yellow
 Write-Host "Backend Endpoint: $Tunnel" -ForegroundColor Yellow
 Write-Host "=====================================================================`n" -ForegroundColor Cyan

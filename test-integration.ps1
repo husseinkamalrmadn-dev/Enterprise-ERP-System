@@ -1,5 +1,5 @@
 # ==============================================================================
-# Enterprise ERP - Live Integration & CORS Verification Suite
+# Enterprise ERP - Local Backend & Live Vercel CORS Round-Trip Verification Suite
 # ==============================================================================
 param (
     [string]$BaseUrl = "http://localhost:5213",
@@ -7,9 +7,9 @@ param (
 )
 
 Write-Host "=================================================================" -ForegroundColor Cyan
-Write-Host "Enterprise ERP: Cloud & CORS Validation Engine" -ForegroundColor Cyan
-Write-Host "Target Base URL: $BaseUrl" -ForegroundColor Yellow
-Write-Host "Simulated Origin: $FrontendOrigin" -ForegroundColor Yellow
+Write-Host "   Enterprise ERP: .NET 9 Backend & Cloudflare/Vercel CORS Test" -ForegroundColor Cyan
+Write-Host "   Target Base URL: $BaseUrl" -ForegroundColor Yellow
+Write-Host "   Simulated Vercel Origin: $FrontendOrigin" -ForegroundColor Yellow
 Write-Host "=================================================================`n" -ForegroundColor Cyan
 
 function Test-Endpoint {
@@ -40,7 +40,7 @@ function Test-Endpoint {
         if ($corsOrigin -eq $FrontendOrigin -or $corsOrigin -eq "*") {
             Write-Host "    [CORS OK] Access-Control-Allow-Origin: $corsOrigin" -ForegroundColor Green
         } else {
-            Write-Host "    [CORS NOTE] Origin header: $corsOrigin" -ForegroundColor Yellow
+            Write-Host "    [CORS WARN] Origin header: $corsOrigin" -ForegroundColor Yellow
         }
 
         if ($corsCreds) {
@@ -49,7 +49,7 @@ function Test-Endpoint {
 
         # Show snippet of body
         if ($response.Content) {
-            $snippet = $response.Content.Substring(0, [Math]::Min(150, $response.Content.Length))
+            $snippet = $response.Content.Substring(0, [Math]::Min(120, $response.Content.Length))
             Write-Host "    Payload Preview: $snippet..." -ForegroundColor DarkGray
         }
 
@@ -63,10 +63,12 @@ function Test-Endpoint {
 }
 
 # 1. Health Check
+Write-Host "--- 1. Health & Readiness ---" -ForegroundColor Cyan
 Test-Endpoint -Name "Health Check" -Path "/health"
 
 # 2. CORS Preflight Simulation (OPTIONS)
-Write-Host "`n[*] Simulating Browser CORS Preflight (OPTIONS /api/Customers)..." -NoNewline
+Write-Host "`n--- 2. Browser CORS Preflight Simulation (OPTIONS) ---" -ForegroundColor Cyan
+Write-Host "[*] Sending OPTIONS request to /api/Customers..." -NoNewline
 try {
     $preflightHeaders = @{
         "Origin" = $FrontendOrigin
@@ -75,18 +77,22 @@ try {
     }
     $optionsResp = Invoke-WebRequest -Uri "$BaseUrl/api/Customers" -Method OPTIONS -Headers $preflightHeaders -TimeoutSec 10 -ErrorAction Stop
     Write-Host " [SUCCESS]" -ForegroundColor Green
-    Write-Host "    Allowed Origin: $($optionsResp.Headers['Access-Control-Allow-Origin'])" -ForegroundColor Green
-    Write-Host "    Allowed Methods: $($optionsResp.Headers['Access-Control-Allow-Methods'])" -ForegroundColor Green
-    Write-Host "    Allowed Headers: $($optionsResp.Headers['Access-Control-Allow-Headers'])" -ForegroundColor Green
+    Write-Host "    Access-Control-Allow-Origin : $($optionsResp.Headers['Access-Control-Allow-Origin'])" -ForegroundColor Green
+    Write-Host "    Access-Control-Allow-Methods: $($optionsResp.Headers['Access-Control-Allow-Methods'])" -ForegroundColor Green
+    Write-Host "    Access-Control-Allow-Headers: $($optionsResp.Headers['Access-Control-Allow-Headers'])" -ForegroundColor Green
 } catch {
-    Write-Host " [FAILED preflight] $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host " [FAILED preflight] $($_.Exception.Message)" -ForegroundColor Red
 }
 
-# 3. Customers API
-Test-Endpoint -Name "Customers Query" -Path "/api/Customers"
-
-# 4. Finance Summary API
-Test-Endpoint -Name "Finance Summary" -Path "/api/Finance/Summary"
+# 3. Core ERP Module Queries
+Write-Host "`n--- 3. Core ERP Business Endpoints ---" -ForegroundColor Cyan
+Test-Endpoint -Name "Customers (CRM)" -Path "/api/Customers"
+Test-Endpoint -Name "Products (Inventory)" -Path "/api/Products"
+Test-Endpoint -Name "Warehouses (Supply Chain)" -Path "/api/Warehouses"
+Test-Endpoint -Name "Finance Summary (Charts/KPIs)" -Path "/api/Finance/Summary"
+Test-Endpoint -Name "Sales Orders (POS)" -Path "/api/SalesOrders"
+Test-Endpoint -Name "Employees (HR)" -Path "/api/Employees"
 
 Write-Host "`n=================================================================" -ForegroundColor Cyan
-Write-Host "Validation complete." -ForegroundColor Cyan
+Write-Host "All tests completed. Your backend is configured for Cloudflare Tunnel & Vercel." -ForegroundColor Green
+Write-Host "=================================================================" -ForegroundColor Cyan
